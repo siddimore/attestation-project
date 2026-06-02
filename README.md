@@ -25,7 +25,6 @@ The result: a VM's confidentiality and integrity are enforced by silicon, not by
 
 ### The AMD Secure Processor (ASP)
 
-A dedicated ARM Cortex-A5 security co-processor embedded on every AMD EPYC die. It:
 - Manages all per-VM encryption keys.
 - Generates attestation reports on behalf of the guest.
 - Holds the per-chip private key used to sign those reports.
@@ -33,11 +32,11 @@ A dedicated ARM Cortex-A5 security co-processor embedded on every AMD EPYC die. 
 
 ### The Attestation Report
 
-When a guest calls `SNP_GET_REPORT` (via the `sev-guest` kernel driver), the ASP produces a **1184-byte signed structure** containing:
+When a guest calls `SNP_GET_REPORT` (via the `sev-guest` kernel driver), the ASP produces a report containing:
 
 | Field | Meaning |
 |---|---|
-| `MEASUREMENT` | SHA-384 of initial guest memory at launch, computed by the ASP. Uniquely identifies the workload binary. |
+| `MEASUREMENT` | SHA of initial guest memory at launch, computed by the ASP. Uniquely identifies the workload binary. |
 | `REPORT_DATA` | 64 bytes supplied by the guest — typically a challenge nonce or hash of an ephemeral public key. Binds the report to a session. |
 | `TCB_VERSION` | Packed uint64 of per-component firmware Security Version Numbers (SVNs) at signing time. |
 | `SIGNATURE` | ECDSA-P384 signature over the report body, made with the chip's VCEK or VLEK private key. |
@@ -88,7 +87,7 @@ The relying party (verifier) fetches the VCEK from AMD's **Key Distribution Serv
 GET https://kdsintf.amd.com/vcek/v1/{product}/{chip_id}?blSPL={n}&teeSPL={n}&snpSPL={n}&ucodeSPL={n}
 ```
 
-- `chip_id` — 64-byte hardware identifier read from the guest's attestation report.
+- `chip_id` — hardware identifier read from the guest's attestation report.
 - The SVN query parameters are taken from the `TCB_VERSION` field of the same report.
 - KDS returns a DER-encoded X.509 certificate. AMD issues it on demand — the private key was provisioned in the chip at manufacture time.
 
